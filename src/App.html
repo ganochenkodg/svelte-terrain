@@ -1,0 +1,147 @@
+<script>
+	import './perlin.js';
+	import {
+		Button,
+		Col,
+		Row,
+		Alert,
+		Input,
+		Label
+	} from 'sveltestrap';
+	import {
+		onMount
+	} from "svelte";
+
+	let width = 800;
+	let height = 600;
+	var noisearray = new Array(width);
+	var a = 0.2;
+	var b = 0.9;
+	var c = 1.0;
+	var threshold = 0.45;
+	var start, end = null;
+	for (var i = 0; i < noisearray.length; i++) {
+		noisearray[i] = new Array(height);
+	}
+	var canvas = null;
+	var data = null;
+	let biomes = [
+		['snow', 0.9, 3, 255, 255, 255],
+		['forest', 0.4, 0.9, 35, 160, 55],
+		['savannah', 0.03, 0.4, 154, 205, 55],
+		['beach', 0, 0.03, 255, 255, 0],
+		['water', -0.3, 0, 60, 60, 255],
+		['darkwater', -3, -0.3, 15, 13, 155],
+	]
+
+	function initCanvas() {
+		canvas = document.getElementsByTagName('canvas')[0];
+		canvas.width = width;
+		canvas.height = height + 20;
+	}
+
+	function drawPixel(x, y, a) {
+		var index = (x + y * width) * 4;
+		biomes.forEach(function(item) {
+			if (a > item[1] + threshold && a <= item[2] + threshold) {
+				for (let i = 0; i < 3; i++) {
+					data[index + i] = item[i + 3];
+				}
+			}
+		});
+		if (Math.round(a * 80) == Math.round((threshold) * 80)) {
+			data[index + 0] = data[index + 1] = data[index + 2] = 0;
+		}
+		data[index + 3] = 256;
+	}
+
+	function generateMap() {
+		start = Date.now();
+		noise.seed(Math.random());
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				noisearray[x][y] = noise.perlin2(x / 60, y / 60) + 0.5;
+				noisearray[x][y] += (noise.perlin2(x / 30, y / 30) + 0.5) * 0.5;
+				noisearray[x][y] += (noise.perlin2(x / 10, y / 10) + 0.5) * 0.15;
+				let nx = 2 * Math.abs(width / 2 - x) / width;
+				let ny = 2 * Math.abs(height / 2 - y) / height;
+				noisearray[x][y] = (noisearray[x][y] + a) * (1 - Math.pow(b * Math.sqrt(nx * nx + ny * ny), 2-c));
+			}
+		}
+		drawMap();
+	}
+
+	function drawMap() {
+
+		console.log(threshold);
+		var ctx = canvas.getContext('2d');
+		var image = ctx.createImageData(canvas.width, canvas.height);
+		data = image.data;
+		for (var x = 0; x < width; x++) {
+			for (var y = 0; y < height; y++) {
+				drawPixel(x, y, noisearray[x][y]);
+			}
+		}
+
+		end = Date.now();
+
+		ctx.fillColor = 'black';
+		ctx.fillRect(0, 0, width, height);
+		ctx.putImageData(image, 0, 0);
+
+		ctx.font = '16px sans-serif';
+		ctx.textAlign = 'center';
+		ctx.fillText('Rendered in ' + (end - start) + ' ms', canvas.width / 2, canvas.height - 2);
+	}
+
+	function initAll() {
+		initCanvas();
+		generateMap();
+	}
+	onMount(initAll);
+</script>
+
+<svelte:head>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</svelte:head>
+
+<style>
+	#container {
+	  border-radius: 10px;
+	  background-color: moccasin;
+	  border: 1px solid black;
+	  overflow: hidden;
+	}
+
+	#container > canvas {
+	  height: 620px;
+	  background-color: moccasin;
+	}
+
+</style>
+
+<div>
+	<Row>
+		<Col sm="12" md={{ size: 6, offset: 2 }}>
+			<div id="container">
+		<canvas id="canvas"></canvas>
+		</div>
+		</Col>
+		<Col xs="2">
+		<Alert color="warning" Generation>
+			<Input type="number" min="0" max="1" bind:value={a} step="0.1" />
+			<Label>Коэф. роста высоты</Label>
+			<Input type="number" min="0" max="1" bind:value={b} step="0.1" />
+			<Label>Коэф. спада высоты</Label>
+			<Input type="number" min="0" max="2" bind:value={c} step="0.1" />
+			<Label>Коэф. наступления моря</Label>
+			<Input type="number" min="0" max="3" bind:value={threshold} step="0.01" />
+			<Label>Уровень воды</Label>
+			<Button color="primary" on:click={generateMap}>Regenerate</Button>
+		</Alert>
+
+
+		</Col>
+
+	</Row>
+</div>
