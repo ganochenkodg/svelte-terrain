@@ -2,6 +2,7 @@
 	import './perlin.js';
 	import {
 		Button,
+		ButtonGroup,
 		Col,
 		Row,
 		Alert,
@@ -15,23 +16,48 @@
 	let width = 800;
 	let height = 600;
 	var noisearray = new Array(width);
+	var heatmap = new Array(width);
+	var humiditymap = new Array(width);
 	var a = 0.2;
 	var b = 0.9;
 	var c = 1.0;
 	var threshold = 0.45;
 	var start, end = null;
+	var polustemp = -20;
+	var equatortemp = 40;
 	for (var i = 0; i < noisearray.length; i++) {
 		noisearray[i] = new Array(height);
+		heatmap[i] = new Array(height);
+		humiditymap[i] = new Array(height);
 	}
 	var canvas = null;
 	var data = null;
 	let biomes = [
 		['snow', 0.9, 3, 255, 255, 255],
-		['forest', 0.4, 0.9, 35, 160, 55],
-		['savannah', 0.03, 0.4, 154, 205, 55],
+		['mountain', 0.7, 0.9, 205, 133, 63],
+		['forest', 0.03, 0.4, 35, 160, 55],
+		['savannah', 0.4, 0.7, 154, 205, 55],
 		['beach', 0, 0.03, 255, 255, 0],
 		['water', -0.3, 0, 60, 60, 255],
 		['darkwater', -3, -0.3, 15, 13, 155],
+	]
+
+	let temps = [
+		['coldest', -100, -10, 0, 0, 255],
+		['colder', -10, 0, 135, 206, 235],
+		['cold', 0, 10, 152, 251, 152],
+		['warm', 10, 20, 255, 255, 0],
+		['warmer', 20, 30, 255, 165, 0],
+		['warmest', 30, 100, 255, 0, 0],
+	]
+
+	let humidity = [
+		['dryest', -20, 40, 255, 0, 0],
+		['dryer', 40, 70, 255, 165, 0],
+		['dry', 70, 100, 255, 255, 0],
+		['wet', 100, 150, 152, 251, 152],
+		['weter', 150, 300, 135, 206, 235],
+		['wetest', 300, 3000, 0, 0, 255],
 	]
 
 	function initCanvas() {
@@ -40,23 +66,32 @@
 		canvas.height = height + 20;
 	}
 
-	function drawPixel(x, y, a) {
+	function drawPixel(x, y, a, arrayset, thresh, border) {
 		var index = (x + y * width) * 4;
-		biomes.forEach(function(item) {
-			if (a > item[1] + threshold && a <= item[2] + threshold) {
-				for (let i = 0; i < 3; i++) {
-					data[index + i] = item[i + 3];
+		if (border) {
+			arrayset.forEach(function(item) {
+				if (a > item[1] + thresh && a <= item[2] + thresh) {
+					for (let i = 0; i < 3; i++) {
+						data[index + i] = item[i + 3];
+					}
 				}
+			});
+			if (Math.round(a * 80) == Math.round((thresh) * 80)) {
+				data[index + 0] = data[index + 1] = data[index + 2] = 0;
 			}
-		});
-		if (Math.round(a * 80) == Math.round((threshold) * 80)) {
-			data[index + 0] = data[index + 1] = data[index + 2] = 0;
+		} else {
+			arrayset.forEach(function(item) {
+				if (a > item[1] + thresh && a <= item[2] + thresh) {
+					for (let i = 0; i < 3; i++) {
+						data[index + i] = item[i + 3];
+					}
+				}
+			});
 		}
 		data[index + 3] = 256;
 	}
 
 	function generateMap() {
-		start = Date.now();
 		noise.seed(Math.random());
 		for (let y = 0; y < height; y++) {
 			for (let x = 0; x < width; x++) {
@@ -65,24 +100,70 @@
 				noisearray[x][y] += (noise.perlin2(x / 10, y / 10) + 0.5) * 0.15;
 				let nx = 2 * Math.abs(width / 2 - x) / width;
 				let ny = 2 * Math.abs(height / 2 - y) / height;
-				noisearray[x][y] = (noisearray[x][y] + a) * (1 - Math.pow(b * Math.sqrt(nx * nx + ny * ny), 2-c));
+				noisearray[x][y] = (noisearray[x][y] + a) * (1 - Math.pow(b * Math.sqrt(nx * nx + ny * ny), 2 - c));
 			}
 		}
+		generateTemp();
+		generateHumidity();
 		drawMap();
 	}
 
-	function drawMap() {
+	function generateTemp() {
+		noise.seed(Math.random());
+		for (let y = 0; y < height / 2; y++) {
+			for (let x = 0; x < width; x++) {
+				heatmap[x][y] = Math.round(2 * (polustemp * Math.abs(y - height / 2) + equatortemp * Math.abs(y)) / height);
+			}
+		}
+		for (let y = height / 2; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				heatmap[x][y] = Math.round(2 * (polustemp * Math.abs(y - height / 2) + equatortemp * Math.abs(height - y)) / height);
+			}
+		}
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				heatmap[x][y] += noise.perlin2(x / 200, y / 200) * 5;
+				heatmap[x][y] -= Math.max(0, (noisearray[x][y] - threshold - 0.2) * 20) + Math.max(0, (noisearray[x][y] - threshold - 0.5) * 30);
+			}
+		}
+	}
 
-		console.log(threshold);
+	function generateHumidity() {
+		noise.seed(Math.random());
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				humiditymap[x][y] = (noise.perlin2(x / 30, y / 30) + 0.5) * 100;
+				humiditymap[x][y] += Math.max(0, (threshold + 0.15 - noisearray[x][y]) * 1000) + Math.max(0, (threshold + 0.4 - noisearray[x][y]) * 400) + Math.max(0, (threshold + 0.7 - noisearray[x][y]) * 200);
+			}
+		}
+	}
+
+	function draw(type) {
+		start = Date.now();
 		var ctx = canvas.getContext('2d');
 		var image = ctx.createImageData(canvas.width, canvas.height);
 		data = image.data;
-		for (var x = 0; x < width; x++) {
-			for (var y = 0; y < height; y++) {
-				drawPixel(x, y, noisearray[x][y]);
+		if (type == 'map') {
+			for (var x = 0; x < width; x++) {
+				for (var y = 0; y < height; y++) {
+					drawPixel(x, y, noisearray[x][y], biomes, threshold, true);
+				}
 			}
 		}
-
+		if (type == 'heat') {
+			for (var x = 0; x < width; x++) {
+				for (var y = 0; y < height; y++) {
+					drawPixel(x, y, heatmap[x][y], temps, 0, false);
+				}
+			}
+		}
+		if (type == 'humidity') {
+			for (var x = 0; x < width; x++) {
+				for (var y = 0; y < height; y++) {
+					drawPixel(x, y, humiditymap[x][y], humidity, 0, false);
+				}
+			}
+		}
 		end = Date.now();
 
 		ctx.fillColor = 'black';
@@ -92,6 +173,18 @@
 		ctx.font = '16px sans-serif';
 		ctx.textAlign = 'center';
 		ctx.fillText('Rendered in ' + (end - start) + ' ms', canvas.width / 2, canvas.height - 2);
+	}
+
+	function drawMap() {
+		draw('map');
+	}
+
+	function drawHeatMap() {
+		draw('heat');
+	}
+
+	function drawHumidityMap() {
+		draw('humidity');
 	}
 
 	function initAll() {
@@ -107,24 +200,23 @@
 
 <style>
 	#container {
-	  border-radius: 10px;
-	  background-color: moccasin;
-	  border: 1px solid black;
-	  overflow: hidden;
+		border-radius: 10px;
+		background-color: moccasin;
+		border: 1px solid black;
+		overflow: hidden;
 	}
 
-	#container > canvas {
-	  height: 620px;
-	  background-color: moccasin;
+	#container>canvas {
+		height: 620px;
+		background-color: moccasin;
 	}
-
 </style>
 
 <div>
 	<Row>
 		<Col sm="12" md={{ size: 6, offset: 2 }}>
-			<div id="container">
-		<canvas id="canvas"></canvas>
+		<div id="container">
+			<canvas id="canvas"></canvas>
 		</div>
 		</Col>
 		<Col xs="2">
@@ -135,12 +227,21 @@
 			<Label>Коэф. спада высоты</Label>
 			<Input type="number" min="0" max="2" bind:value={c} step="0.1" />
 			<Label>Коэф. наступления моря</Label>
-			<Input type="number" min="0" max="3" bind:value={threshold} step="0.01" />
+			<Input type="number" min="-40" max="50" bind:value={polustemp} step="1" />
+			<Label>Температура на полюсе</Label>
+			<Input type="number" min="-40" max="50" bind:value={equatortemp} step="1" />
+			<Label>Температура на экваторе</Label>
+			<Input type="number" min="0.25" max="2" bind:value={threshold} step="0.01" on:change={drawMap} />
 			<Label>Уровень воды</Label>
 			<Button color="primary" on:click={generateMap}>Regenerate</Button>
+			<p></p>
+			<ButtonGroup>
+				<Button color="success" on:click={drawMap}>Map</Button>
+				<Button color="warning" on:click={drawHeatMap}>Heat</Button>
+				<Button color="primary" on:click={drawHumidityMap}>Humidity</Button>
+			</ButtonGroup>
+
 		</Alert>
-
-
 		</Col>
 
 	</Row>
