@@ -15,7 +15,7 @@
 	} from "svelte";
 
 	let width = 800;
-	let height = 616;
+	let height = 632;
 	var noisearray = new Array(width);
 	var heatmap = new Array(width);
 	var humiditymap = new Array(width);
@@ -29,6 +29,7 @@
 	var generatebutton = true;
 	var noisemap = true;
 	var reliefmap = true;
+	var rivermap = false;
 	var drawriver = false;
 	var drawriverstep = 0;
 	var riverlength = 500;
@@ -143,7 +144,9 @@
 		}
 		generateTemp();
 		generateHumidity();
-		generateRivers();
+		if (rivermap) {
+			generateRivers();
+		}
 		drawMap();
 		generatebutton = true;
 	}
@@ -319,7 +322,7 @@
 	}
 
 	#container>canvas {
-		height: 636px;
+		height: 652px;
 		background-color: moccasin;
 	}
 </style>
@@ -348,7 +351,8 @@
 			<Label>Maximum river length</Label>
 			<CustomInput type="checkbox" label="Relief" id="reliefmap" inline bind:checked={reliefmap} />
 			<CustomInput type="checkbox" label="Noise" inline id="noisemap" bind:checked={noisemap} />
-			<Button block color="primary" outline={generatebutton} on:click={generateMap}>Generate</Button>
+			<CustomInput type="checkbox" label="Rivers" inline id="rivermap" bind:checked={rivermap} />
+			<Button block size="sm" color="primary" outline={generatebutton} on:click={generateMap}>Generate</Button>
 			<p></p>
 			<ButtonGroup>
 				<Button size="sm" color="success" on:click={drawMap}>Biomes map</Button>
