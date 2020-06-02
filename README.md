@@ -28,6 +28,7 @@ npm install
 npm run dev
 ```
 ...then open [http://localhost:5000](http://localhost:5000)...
+
 ...or build the application.
 
 ```
