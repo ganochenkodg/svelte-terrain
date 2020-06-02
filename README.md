@@ -1,5 +1,5 @@
-# Perline Terrain generator
-Simple web-app to generate terrains from perline noise functions.
+# Perlin Terrain generator
+Simple web-app to generate terrains from perlin noise functions.
 
 ![](https://github.com/ganochenkodg/svelte-terrain/blob/master/images/map1.png)
 
