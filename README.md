@@ -27,7 +27,7 @@ npm install
 ```
 npm run dev
 ```
-...then open [http://localhost:5000]...
+...then open [http://localhost:5000](http://localhost:5000)...
 ...or build the application.
 
 ```
@@ -40,4 +40,4 @@ Also it have Dockerfile for dockerize your app.
 docker build -t terrainapp ./
 docker run -p 80:80 terrainapp
 ```
-...then open [http://localhost:80].
+...then open [http://localhost:80](http://localhost:80).
