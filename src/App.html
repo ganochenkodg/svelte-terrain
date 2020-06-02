@@ -96,7 +96,7 @@ alert(xx + ',' + evt.clientY + ' att: ' + noisearray[xx][evt.clientY]+ ' heat: '
 					if (heatmap[x][y] > item[3] && heatmap[x][y] <= item[4]) {
 						if (humiditymap[x][y] > item[5] && humiditymap[x][y] <= item[6]) {
 					for (let i = 0; i < 3; i++) {
-						data[index + i] = item[i + 7];
+						data[index + i] = item[i + 7] + Math.round(Math.random()*15) - 5;
 					}
 				}
 			}
