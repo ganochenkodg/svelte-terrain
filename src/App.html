@@ -186,12 +186,11 @@
 	function generateRivers() {
 		var pickX = 5 + Math.round(Math.random() * (width - 10));
 		var pickY = 5 + Math.round(Math.random() * (height - 10));
-		console.log(pickX + ' ' + pickY + ' ' + noisearray[pickX][pickY]);
 		var attemp = 0;
-		while (attemp < 1500) {
+		let maxiterations = Math.round(Math.random()*1000);
+		while (attemp < 1500 + maxiterations) {
 			attemp++;
 			if (noisearray[pickX][pickY] > 0.5 + threshold && noisearray[pickX][pickY] < 0.7 + threshold) {
-				console.log(pickX + ' ' + pickY + ' ' + noisearray[pickX][pickY]);
 				drawriver = false;
 				drawriverstep = 0;
 				createRiver(pickX, pickY);
@@ -211,7 +210,7 @@
 		var newriveralt = noisearray[riverx][rivery];
 		for (let y = -1; y < 2; y++) {
 			for (let x = -1; x < 2; x++) {
-				if (noisearray[riverx + x][rivery + y] < newriveralt && noisearray[riverx + x][rivery + y] > threshold - 0.02) {
+				if (noisearray[riverx + x][rivery + y] < newriveralt && noisearray[riverx + x][rivery + y] > threshold - 0.03) {
 					newriveralt = noisearray[riverx + x][rivery + y];
 					newx = x;
 					newy = y;
