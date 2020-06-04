@@ -15,7 +15,7 @@
 	} from "svelte";
 
 	let width = 800;
-	let height = 632;
+	let height = 588;
 	var noisearray = new Array(width);
 	var heatmap = new Array(width);
 	var humiditymap = new Array(width);
@@ -42,29 +42,29 @@
 	var data = null;
 	let biomes = [
 		// name, attitude range, temp range, humidity range, rgb
-		['anything', -10, 10, -100, 100, -2000, 2000, 143, 143, 143],
+		['earth', -10, 10, -100, 100, -2000, 2000, 160, 136, 136],
 		['snow', 0.9, 3, -50, 100, 30, 1500, 255, 255, 255],
 		['bare', 0.9, 3, -50, 100, 10, 30, 180, 180, 180],
 		['scorched', 0.9, 3, -50, 100, 0, 10, 143, 143, 143],
-		['snow', 0, 0.03, -50, 0, 0, 1500, 255, 255, 255],
-		['snow', 0.03, 0.7, -50, -10, 250, 1500, 255, 255, 255],
-		['tundrasnow', 0.03, 0.7, -50, -10, 0, 250, 200, 200, 255],
+		['tundra', 0.03, 0.7, -50, -10, 0, 250, 200, 200, 255],
 		['taiga', 0.03, 0.7, -10, 10, 0, 100, 147, 204, 176],
-		['borealforest', 0.03, 0.7, -10, 10, 100, 300, 155, 207, 168],
-		['swamp', 0.03, 0.7, -10, 10, 300, 1500, 240, 230, 140],
-		['desert', 0.03, 0.7, 10, 22, 0, 70, 201, 212, 182],
+		['boreal forest', 0.03, 0.7, -10, 10, 100, 300, 155, 207, 168],
+		['swamp', 0.03, 0.7, -10, 10, 300, 1500, 201, 212, 182],
+		['desert', 0.03, 0.7, 10, 22, 0, 70, 240, 230, 140],
 		['grassland', 0.03, 0.7, 10, 22, 70, 150, 201, 224, 159],
 		['forest', 0.03, 0.7, 10, 22, 150, 300, 151, 201, 159],
-		['rainforest', 0.03, 0.7, 10, 22, 300, 1500, 106, 184, 206],
-		['subtropdesert', 0.03, 0.7, 22, 50, 0, 70, 174, 184, 154],
-		['grassland', 0.03, 0.7, 22, 50, 70, 100, 201, 224, 159],
-		['tropforest', 0.03, 0.7, 22, 50, 100, 250, 127, 194, 126],
-		['troprainforest', 0.03, 0.7, 22, 50, 250, 1500, 70, 153, 69],
+		['rainforest', 0.03, 0.7, 10, 22, 300, 1500, 106, 206, 184],
+		['subtropical desert', 0.03, 0.7, 22, 50, 0, 70, 174, 184, 154],
+		['tropical forest', 0.03, 0.7, 22, 50, 100, 250, 127, 194, 126],
+		['tropical rainforest', 0.03, 0.7, 22, 50, 250, 1500, 70, 153, 69],
 		['mountain', 0.7, 0.9, -50, 100, 0, 150, 205, 133, 63],
-		['grassmountain', 0.7, 0.9, -50, 100, 150, 1500, 151, 156, 106],
+		['grass mountain', 0.7, 0.9, -50, 100, 150, 1500, 151, 156, 106],
 		['beach', 0, 0.03, 0, 50, 0, 1500, 255, 255, 0],
 		['water', -0.3, 0, -50, 50, 0, 1500, 60, 60, 255],
-		['darkwater', -3, -0.3, -50, 50, 0, 1500, 15, 13, 155],
+		['deepwater', -3, -0.3, -50, 50, 0, 1500, 15, 13, 155],
+		['snow', 0, 0.03, -50, 0, 0, 1500, 255, 255, 255],
+		['snow', 0.03, 0.7, -50, -10, 250, 1500, 255, 255, 255],
+		['grassland', 0.03, 0.7, 22, 50, 70, 100, 201, 224, 159],
 	]
 
 	let temps = [
@@ -89,10 +89,6 @@
 		canvas = document.getElementsByTagName('canvas')[0];
 		canvas.width = width;
 		canvas.height = height + 20;
-		canvas.addEventListener('click', function(evt) {
-			let xx = evt.clientX - 10;
-			alert(xx + ',' + evt.clientY + ' att: ' + noisearray[xx][evt.clientY] + ' heat: ' + Math.round(heatmap[xx][evt.clientY]) + ' hum: ' + Math.round(humiditymap[xx][evt.clientY]));
-		}, false);
 	}
 
 	function drawPixel(x, y, a, arrayset, thresh, border) {
@@ -187,7 +183,7 @@
 		var pickX = 5 + Math.round(Math.random() * (width - 10));
 		var pickY = 5 + Math.round(Math.random() * (height - 10));
 		var attemp = 0;
-		let maxiterations = Math.round(Math.random()*1000);
+		let maxiterations = Math.round(Math.random() * 1000);
 		while (attemp < 1500 + maxiterations) {
 			attemp++;
 			if (noisearray[pickX][pickY] > 0.5 + threshold && noisearray[pickX][pickY] < 0.7 + threshold) {
@@ -231,11 +227,11 @@
 			}
 			if (drawriver) {
 				if (noisearray[riverx + newx - 1][rivery + newy - 1] - threshold > 0 && noisearray[riverx + newx - 1][rivery + newy - 1] - threshold < 0.1) {
-					noisearray[riverx + newx - 1][rivery + newy - 1] = threshold+0.025;
+					noisearray[riverx + newx - 1][rivery + newy - 1] = threshold + 0.025;
 				}
 				for (let y = -2; y < 3; y++) {
 					for (let x = -2; x < 3; x++) {
-						humiditymap[riverx + newx + x][rivery + newy + y] += Math.random()*(3*Math.sqrt(Math.abs(x)*Math.abs(x)+Math.abs(y)*Math.abs(y))) ;
+						humiditymap[riverx + newx + x][rivery + newy + y] += Math.random() * (3 * Math.sqrt(Math.abs(x) * Math.abs(x) + Math.abs(y) * Math.abs(y)));
 					}
 				}
 				noisearray[riverx + newx][rivery + newy] = threshold - 0.05;
@@ -314,15 +310,28 @@
 	}
 
 	#container {
-		border-radius: 10px;
+		border-radius: 6px;
 		background-color: moccasin;
 		border: 1px solid black;
 		overflow: hidden;
 	}
 
 	#container>canvas {
-		height: 652px;
+		height: 608px;
 		background-color: moccasin;
+	}
+
+	#legend {
+		border-radius: 6px;
+		background-color: moccasin;
+		border: 1px solid black;
+		overflow: hidden;
+		font-size: 10px;
+	}
+	td {
+		cellpadding: 8;
+		width: 80px;
+		text-align: center;
 	}
 </style>
 <div id="background">
@@ -330,6 +339,35 @@
 		<Col sm="12" md={{ size: 6, offset: 2 }}>
 		<div id="container">
 			<canvas id="canvas"></canvas>
+		</div>
+		<p></p>
+		<div id="legend">
+			<table>
+			  <tr>
+			    <td bgcolor="#A08888">Earth</td>
+			    <td bgcolor="#FFFFFF">Snow</td>
+			    <td bgcolor="#B4B4B4">Bare</td>
+					<td bgcolor="#8F8F8F" style="color:#ffffff">Scorched</td>
+					<td bgcolor="#C8C8FF">Tundra</td>
+					<td bgcolor="#93CCB0">Taiga</td>
+					<td bgcolor="#9BCFA8">Boreal forest</td>
+					<td bgcolor="#C9D4B6">Swamp</td>
+					<td bgcolor="#F0E68C">Desert</td>
+					<td bgcolor="#C9E09F">Grassland</td>
+			  </tr>
+			  <tr>
+					<td bgcolor="#97C99F">Forest</td>
+			    <td bgcolor="#6ACEB8">Rainforest</td>
+			    <td bgcolor="#AEB89A" >Subtrop. d.</td>
+					<td bgcolor="#7FC27E">Trop. forest</td>
+					<td bgcolor="#469945">Trop. rainforest</td>
+					<td bgcolor="#CD853F">Mountain</td>
+					<td bgcolor="#9B9C6A">Mountain grass</td>
+					<td bgcolor="#FFFF00">Beach</td>
+					<td bgcolor="#3C3CFF">Water</td>
+					<td bgcolor="#0D0D9B" style="color:#ffffff">Deep water</td>
+			  </tr>
+			</table>
 		</div>
 		</Col>
 		<Col xs="2">
@@ -351,7 +389,7 @@
 			<CustomInput type="checkbox" label="Relief" id="reliefmap" inline bind:checked={reliefmap} />
 			<CustomInput type="checkbox" label="Noise" inline id="noisemap" bind:checked={noisemap} />
 			<CustomInput type="checkbox" label="Rivers" inline id="rivermap" bind:checked={rivermap} />
-			<Button block size="sm" color="primary" outline={generatebutton} on:click={generateMap}>Generate</Button>
+			<Button block color="primary" outline={generatebutton} on:click={generateMap}>Generate</Button>
 			<p></p>
 			<ButtonGroup>
 				<Button size="sm" color="success" on:click={drawMap}>Biomes map</Button>
